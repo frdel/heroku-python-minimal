@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Form</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        #left {
+            flex: 0 0 30%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #right {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ace_editor {
+            flex: 1;
+            width: 100%;
+        }
+        input {
+            width: 100%;
+            flex: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            flex: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="left">
+    <h2>Frontend input</h2>
+    <form id="jsonForm">
+        <input id="inputPrompt"/>
+        <button type="submit">Submit</button>
+        <button type="button" id="clearButton">Clear</button>
+    </form>
+</div>
+
+<div id="right">
+    <h2>Server output</h2>
+    <div id="jsonOutput" class="ace_editor"></div>
+</div>
+
+<script>
+    var editor = ace.edit("jsonOutput");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/json");
+    var input = document.getElementById('inputPrompt');
+
+    document.getElementById('jsonForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var inputPrompt = input.value;
+        document.getElementById("inputPrompt").disabled = true;
+        fetch('/prompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: inputPrompt })
+        })
+        .then(response => {
+            if (response.headers.get('Content-Type').includes('application/json')) {
+                return response.json();
+            } else {
+                return response.text();
+            }
+        })
+        .then(data => {
+            if (typeof data === 'object') {
+                editor.setValue(JSON.stringify(data, null, 2))
+            } else {
+                editor.setValue(data)
+            }
+            document.getElementById("inputPrompt").disabled = false;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            editor.setValue(error.toString())
+        });
+    });
+
+    document.getElementById('clearButton').addEventListener('click', function() {
+        editor.setValue('');
+        input.value=""
+
+    });
+</script>
+
+</body>
+</html>

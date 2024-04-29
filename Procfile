@@ -1,0 +1,1 @@
+web: gunicorn run_srv:app --bind 0.0.0.0:$PORT
