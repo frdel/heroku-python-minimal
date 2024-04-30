@@ -33,7 +33,7 @@ async def test_form():
 # simple health check, just return OK to see the server is running
 @app.route('/health', methods=['GET','POST'])
 async def health_check():
-    return "OK version 2"
+    return "OK"
 
 # secret page, requires authentication
 @app.route('/secret', methods=['GET'])
